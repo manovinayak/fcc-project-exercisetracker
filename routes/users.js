@@ -15,15 +15,22 @@ router
     res.json({ username: user.username, _id: user._id });
   })
   .get(async (req, res) => {
+    const getUsersWithAttributes = (users) => {
+      return users?.map((user) => {
+        return { _id: user._id, username: user.username };
+      });
+    };
     const users = await getAllUsers();
-    res.json(users);
+    res.json(getUsersWithAttributes(users));
   });
 
 router.route("/:_id/exercises").post(async (req, res) => {
   const id = req.params._id;
   const description = req.body.description;
   const duration = parseInt(req.body.duration);
-  const date = Date.parse(req.body.date);
+  const date = Dates.isValidDate(req.body.date)
+    ? Date.parse(req.body.date)
+    : new Date();
   console.log(`${id} ${description} ${duration} ${date}`);
   try {
     const { user, exercise } = await createExercise(
@@ -36,7 +43,7 @@ router.route("/:_id/exercises").post(async (req, res) => {
     res.json({
       _id: user._id,
       username: user.username,
-      date: exercise.date,
+      date: Dates.convertTimestampToDateString(exercise.date),
       duration: exercise.duration,
       description: exercise.description,
     });
