@@ -2,11 +2,11 @@ const Dates = {
   convertTimestampToDateString: (timestamp) => {
     return new Date(timestamp).toDateString();
   },
-  getTimeStamp: (paramDate) => {
-    return Date.parse(paramDate);
+  getTimeStamp: (dateString) => {
+    return Date.parse(dateString);
   },
-  isValidDate: (date) => {
-    const timestamp = Dates.getTimeStamp(date);
+  isValidDate: (dateString) => {
+    const timestamp = Dates.getTimeStamp(dateString);
     return !!timestamp;
   },
 };

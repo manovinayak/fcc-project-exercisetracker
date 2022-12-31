@@ -55,6 +55,30 @@ router.route("/:_id/exercises").post(async (req, res) => {
 
 router.route("/:id/logs").get(async (req, res) => {
   const id = req.params.id;
+  const from = req.query.from;
+  const to = req.query.to;
+  const limit = parseInt(req.query.limit) || 0;
+  const validateFromToDates = (from, to) => {
+    return Dates.isValidDate(from) && Dates.isValidDate(to);
+  };
+  const getFromAndToDates = (from, to) => {
+    if (validateFromToDates(from, to)) {
+      let fromDate = new Date(Date.parse(from));
+      fromDate.setDate(fromDate.getDate() + 1);
+      fromDate.setUTCHours(0, 0, 0, 0);
+
+      let toDate = new Date(Date.parse(to));
+      toDate.setUTCHours(23, 59, 59, 59);
+      toDate.setDate(toDate.getDate() + 1);
+
+      return { fromDate, toDate };
+    } else {
+      return { fromDate: undefined, toDate: undefined };
+    }
+  };
+
+  const { fromDate, toDate } = getFromAndToDates(from, to);
+
   const getExercisesAttributes = (exercises) => {
     return exercises?.map((exercise) => {
       return {
@@ -66,11 +90,12 @@ router.route("/:id/logs").get(async (req, res) => {
   };
 
   try {
-    let user = await getUserExerciseLog(id);
-    console.log(getExercisesAttributes(user.exercises));
+    let user = await getUserExerciseLog(id, fromDate, toDate, limit);
     res.json({
       _id: user._id,
       username: user.username,
+      ...(from && { from: fromDate.toDateString() }),
+      ...(to && { to: toDate.toDateString() }),
       count: user.exercises.length,
       log: getExercisesAttributes(user.exercises),
     });
